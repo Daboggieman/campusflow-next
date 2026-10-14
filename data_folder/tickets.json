@@ -1,0 +1,32 @@
+{
+    "T1": {
+        "id": "T1",
+        "title": "network in facility",
+        "category": "network",
+        "urgency": "high",
+        "affected_users": 20,
+        "priority": "critical",
+        "status": "open",
+        "assigned_to": false
+    },
+    "T2": {
+        "id": "T2",
+        "title": "pebbles",
+        "category": "administrative",
+        "urgency": "high",
+        "affected_users": 1,
+        "priority": "high",
+        "status": "open",
+        "assigned_to": false
+    },
+    "T3": {
+        "id": "T3",
+        "title": "unknown",
+        "category": "administrative",
+        "urgency": "high",
+        "affected_users": 14,
+        "priority": "critical",
+        "status": "open",
+        "assigned_to": "Mr. Izzy"
+    }
+}
