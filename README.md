@@ -203,9 +203,9 @@ appended to `docs/understanding-notes.md`.
 
 ## 5 The data file format
 
-Everything lives in `data_folder/`. Four files.
+everything lives in data_folder/. Four files.
 
-### `tickets.json` — unchanged envelope
+### `tickets.json`
 
 A single JSON object keyed by ticket ID. The envelope is the same as the first
 version, so a file written by either version loads in the other:
@@ -248,7 +248,7 @@ Notes on the format:
 
 ### `counter.json`
 
-A bare integer: the highest ticket number issued so far. On load it is compared
+a bare integer: the highest ticket number issued so far. On load it is compared
 against the highest ID actually in `tickets.json`. If the counter is lower, it is
 corrected upward and a warning is shown, so the next generated ID can never
 collide with one already in the file.
@@ -298,20 +298,20 @@ campusflow/
 ├── main.py
 ├── campusflow/
 │   ├── __init__.py
-│   ├── errors.py            # ValidationError (recoverable) / DataError (not)
-│   ├── jsonio.py            # safe JSON: duplicate keys, atomic saves, backups
-│   ├── tickets.py           # the record and its field checks
-│   ├── priority.py          # the priority rules
-│   ├── workflow.py          # status moves, assignment, the work queue
-│   ├── storage.py           # loading, saving, ID continuity
-│   ├── validation.py        # the checks that span records, incl. load
-│   ├── notes.py             # follow-up notes, validate-before-mutate
-│   ├── search.py            # read-only search and filtering
-│   ├── reports.py           # the report numbers and their display
-│   ├── categories.py        # the editable category list
-│   └── understanding_check.py  # the question bank and its scoring
+│   ├── errors.py
+│   ├── jsonio.py
+│   ├── tickets.py
+│   ├── priority.py
+│   ├── workflow.py
+│   ├── storage.py 
+│   ├── validation.py
+│   ├── notes.py
+│   ├── search.py
+│   ├── reports.py
+│   ├── categories.py
+│   └── understanding_check.py
 ├── tests/
-│   ├── support.py           # shared fixtures (not collected by discovery)
+│   ├── support.py
 │   ├── test_tickets.py
 │   ├── test_priority.py
 │   ├── test_workflow.py
@@ -323,84 +323,15 @@ campusflow/
 │   ├── test_search.py
 │   ├── test_understanding.py
 │   └── test_cli.py
-├── data_folder/             # created at runtime if missing
+├── data_folder/ 
 │   ├── tickets.json
 │   ├── counter.json
 │   ├── staff.json
 │   └── categories.json
 └── docs/
-    ├── ai-learning-log.md              # index of the two logs below
-    ├── ai-learning-log(Engieneer-1).md
-    ├── ai-learning-log(Engieneer-2).md
-    ├── baseline-check.md               # the 41-test baseline, measured
-    ├── bug-hunter-tests.md             # BH-1 and BH-2
-    ├── design-decisions.md             # do not delete, only add
+    ├── ai-learning-log.md            
+    ├── baseline-check.md
+    ├── bug-hunter-tests.md
+    ├── design-decisions.md
     └── pseudocode.md
 ```
-
-### Fresh clone: how to run it
-
-No dependencies and no installation. Python 3 only, standard library only.
-
-```bash
-git clone <repository-url>
-cd campusflow-next
-
-# run the tests — the brief's command
-python -m unittest discover -s tests -v          # expect: 246 tests, OK
-
-# run the app
-python main.py
-```
-
-On Windows the `py` launcher works the same way:
-
-```powershell
-py -m unittest discover -s tests -v
-py main.py
-```
-
-`unittest discover -s tests` adds `tests/` to the import path, which is how the
-test modules find `support.py`. Running the suite from a different directory
-gives import errors that look like missing modules.
-
-There are no external packages, no database, no web API and no network access at
-any point. The only runtime state is the `data_folder/` directory, which is
-created on the first run.
-
-### The test suite
-
-The brief asks for at least 14 meaningful `unittest` tests for the integrated
-application, at least 5 authored by each engineer, plus 2 bug-hunter tests, all
-runnable in a fresh clone with `python -m unittest discover -s tests -v`.
-Delivered: **246 tests, `unittest` only**, measured per module:
-
-| Owner | Modules | Tests |
-|---|---|---:|
-| Engineer 1 — ticket safety and storage | `test_tickets` 39, `test_validation` 21, `test_notes` 26, `test_storage` 29, `test_workflow` 19, `test_categories` 22 | 156 |
-| Engineer 2 — search, reporting and CLI | `test_search` 21, `test_reports` 13, `test_cli` 32, `test_understanding` 20 | 86 |
-| pre-existing, unchanged | `test_priority` | 4 |
-| **total** | | **246** |
-
-Two of them are bug-hunter tests rather than requirement tests —
-[BH-1](docs/bug-hunter-tests.md) (a duplicated ticket key made a ticket vanish
-silently) and [BH-2](docs/bug-hunter-tests.md) (the resolution percentage on an
-empty dataset).
-
-Requirement-to-test mapping, so a reviewer can check coverage rather than count
-tests:
-
-| Requirement | Owner | Test module | Representative tests |
-|---|---|---|---|
-| A — centralised validation; a rejected action changes nothing | Engineer 1 | `test_tickets`, `test_validation`, `test_cli` | `test_check_affected_users_rejects_decimal_text`, `test_rejects_a_missing_field`, `test_an_unassigned_ticket_cannot_start_work` |
-| B — follow-up notes | Engineer 1 / 2 | `test_notes`, `test_cli` | `test_adds_a_note_to_an_open_ticket`, `test_a_short_note_is_refused_and_no_id_is_used`, `test_notes_are_preserved_through_resolve_and_reopen` |
-| C — read-only search with AND filters | Engineer 2 | `test_search`, `test_cli` | `test_every_supplied_filter_must_match`, `test_filters_are_and_not_or`, `test_searching_does_not_change_any_ticket` |
-| D — reports and the separate priority view | Engineer 2 | `test_reports`, `test_cli` | `test_a_reopened_ticket_counts_as_open`, `test_status_counts_add_up_to_the_total`, `test_puts_critical_first_then_the_rest_by_priority` |
-| E — extended file format; a bad load changes nothing | Engineer 1 | `test_storage`, `test_validation`, `test_categories` | `test_notes_survive_a_save_and_load`, `test_the_next_note_id_survives_a_reload`, `test_a_partially_valid_file_does_not_replace_memory` |
-| Understanding check (bank separate from scoring, no keyword grading) | Engineer 2 | `test_understanding` | `test_the_bank_contains_no_scoring_logic`, `test_explanations_are_recorded_verbatim_and_never_graded` |
-| The original Open Work Queue, unchanged | Engineer 1 | `test_workflow` | `test_includes_open_and_in_progress_only`, `test_sorts_by_priority_rank` |
-
-The 41 tests the project started with are all still present, by name, and were
-additionally run **unmodified against the rewritten package** — all 41 pass.
-Both measurements are in [docs/baseline-check.md](docs/baseline-check.md), along
-with five inputs the original code got wrong.
