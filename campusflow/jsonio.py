@@ -1,34 +1,18 @@
-"""Low-level, dependency-free JSON reading and writing.
+"""JSON reading and writing.
+This file exists so that storage.py and categories.py can share one safe reader and writer without importing each
+other. it imports nothing from the rest of the package except the error types
 
-This module exists so that :mod:`campusflow.storage` and
-:mod:`campusflow.categories` can share one *safe* writer without importing each
-other. It imports nothing from the rest of the package except the error types,
-so it can never take part in an import cycle.
-
-Two safety properties matter here and are the reason this is not just two calls
-to :mod:`json`:
-
-* **Saves are atomic.** The data is written to a temporary file in the same
-  directory and then moved into place with :func:`os.replace`. A crash midway
-  through a save therefore leaves the previous good file intact instead of a
-  half-written one. The original project wrote straight over the live file.
-* **Duplicate keys can be detected.** ``json.load`` silently keeps the *last*
-  of two identical keys, so ``{"T1": ..., "T1": ...}`` loads without complaint
-  and one ticket vanishes. Passing ``reject_duplicate_keys=True`` uses an
-  ``object_pairs_hook`` to refuse the file instead.
+Saves are atomic
+Duplicate keys can be detected
 """
-
 import json
 import os
 import shutil
 import tempfile
 from pathlib import Path
-
 from campusflow.errors import DataError
 
-
 def _reject_duplicate_keys(pairs):
-    """``object_pairs_hook`` that refuses a JSON object with a repeated key."""
     seen = {}
     for key, value in pairs:
         if key in seen:
@@ -41,7 +25,6 @@ def _reject_duplicate_keys(pairs):
 
 
 def load_json(path, reject_duplicate_keys: bool = False):
-    """Read one JSON file. Raises :class:`DataError` for unreadable content."""
     path = Path(path)
 
     try:
@@ -56,7 +39,6 @@ def load_json(path, reject_duplicate_keys: bool = False):
 
 
 def save_json(path, data) -> None:
-    """Write JSON atomically: temp file in the same directory, then replace."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 

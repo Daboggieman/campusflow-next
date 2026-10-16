@@ -35,10 +35,10 @@ def reset_categories() -> None:
 
 def check_category_name(raw_name) -> str:
     if not isinstance(raw_name, str):
-        raise ValidationError("A category name must be text.")
+        raise ValidationError("category name must be text.")
     name = raw_name.strip().casefold()
     if not name:
-        raise ValidationError("A category name cannot be blank.")
+        raise ValidationError("category name cannot be blank.")
     return name
 
 
@@ -50,12 +50,12 @@ def set_categories(active, retired=None) -> None:
     for raw_name in active:
         name = check_category_name(raw_name)
         if name in seen:
-            raise ValidationError(f"Duplicate category name: '{name}'.")
+            raise ValidationError(f"duplicate category name: '{name}'.")
         seen.add(name)
         cleaned_active.append(name)
 
     if not cleaned_active:
-        raise ValidationError("There must be at least one active category.")
+        raise ValidationError("there must be at least one active category.")
 
     cleaned_retired: list[str] = []
     for raw_name in retired or []:
@@ -98,12 +98,11 @@ def retire_category(raw_name) -> str:
 
 
 def categories_to_dict() -> dict:
-    """The on-disk envelope."""
     return {"active": list(_active), "retired": list(_retired)}
 
 
 def load_categories(path) -> None:
-    """Load the category registry, seeding the file on a first run.
+    """load the category registry, seeding the file on a first run.
 
     A plain JSON list is also accepted as the active set, so a hand-written
     file does not have to know about the envelope.

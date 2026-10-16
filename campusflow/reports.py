@@ -1,41 +1,17 @@
-"""Quality insights for the Head of Campus.
-
-Split in two, as in the original: :func:`generate_report` works the numbers out
-and returns them, :func:`print_report` displays them. The numbers function
-never prints, so it can be tested by inspecting a dictionary.
-
-Counts are taken from each ticket's **current** status, so a ticket that was
-resolved and then reopened counts as open. Each ticket is counted once per
-breakdown, so the status counts always add back up to the total.
-"""
-
 from collections import Counter
-
 from campusflow.categories import get_known_categories
 from campusflow.tickets import PRIORITIES, STATUSES
 
-#: Shown even when zero, so the report has a stable shape to read.
 REPORTED_STATUSES = STATUSES
 REPORTED_PRIORITIES = PRIORITIES
 
-
 def generate_report(tickets) -> dict:
-    """Every headline figure, computed from current statuses.
-
-    ``resolution_percentage`` is 0.0 for an empty collection rather than a
-    :class:`ZeroDivisionError`, and is rounded to one decimal place so the
-    printed and tested values agree.
-    """
     by_status = Counter(ticket.status for ticket in tickets.values())
     by_priority = Counter(ticket.priority for ticket in tickets.values())
     by_category = Counter(ticket.category for ticket in tickets.values())
-
     total = len(tickets)
     resolved = by_status.get("resolved", 0)
-    # Counted directly rather than as (total - resolved) so that "unresolved"
-    # is obviously the sum of the two active statuses and cannot double-count.
     unresolved = by_status.get("open", 0) + by_status.get("in_progress", 0)
-
     resolution_percentage = (resolved / total * 100) if total else 0.0
 
     return {
@@ -48,7 +24,6 @@ def generate_report(tickets) -> dict:
         "resolution_percentage": round(resolution_percentage, 1),
     }
 
-
 def _print_counts(title, order, counts, extra_keys=()):
     print(f"\n{title}")
     for key in order:
@@ -56,9 +31,8 @@ def _print_counts(title, order, counts, extra_keys=()):
     for key in sorted(extra_keys):
         print(f"  {key}: {counts.get(key, 0)}")
 
-
 def print_report(report) -> None:
-    """Display a report produced by :func:`generate_report`."""
+    """display a report produced by :func:`generate_report`."""
     if report["total"] == 0:
         print("No tickets yet.")
         print("Resolution: 0.0% (0 of 0 resolved)")
@@ -70,9 +44,6 @@ def print_report(report) -> None:
     _print_counts("Tickets by status:", REPORTED_STATUSES, report["by_status"])
     _print_counts("Tickets by priority:", REPORTED_PRIORITIES, report["by_priority"])
 
-    # Categories are editable data, so any stored category is shown even if it
-    # is no longer offered, and anything unrecognised is still listed rather
-    # than silently dropped from the totals.
     known = set(get_known_categories())
     _print_counts(
         "Tickets by category:",
