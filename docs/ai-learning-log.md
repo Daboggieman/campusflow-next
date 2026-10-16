@@ -8,8 +8,8 @@ measured.
 
 | Engineer | Area | Cycles | File |
 |---|---|---:|---|
-| Engineer 1 | Ticket safety and storage — `tickets.py`, `validation.py`, `notes.py`, `storage.py`, `jsonio.py`, `workflow.py`, `categories.py` | 3 | [ai-learning-log(Engieneer-1).md](ai-learning-log(Engieneer-1).md) |
-| Engineer 2 | Search, reporting and CLI — `search.py`, `reports.py`, `main.py`, `understanding_check.py` | 3 | [ai-learning-log(Engieneer-2).md](ai-learning-log(Engieneer-2).md) |
+| Engineer 1 | Ticket safety and storage — `tickets.py`, `validation.py`, `notes.py`, `storage.py`, `jsonio.py`, `workflow.py`, `categories.py` | 3 | [ai-learning-log(Engieneer-1).md](<ai-learning-log(Engieneer-1).md>) |
+| Engineer 2 | Search, reporting and CLI — `search.py`, `reports.py`, `main.py`, `understanding_check.py` | 3 | [ai-learning-log(Engieneer-2).md](<ai-learning-log(Engieneer-2).md>) |
 
 Both logs use the project's evidence labels. Every measurement quoted in them
 was run in this environment on 2026-10-16; the two bug-hunter tests they refer

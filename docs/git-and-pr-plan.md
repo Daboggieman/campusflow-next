@@ -7,7 +7,8 @@ opened. Every command below is written for a person to run.
 Measured state at the time of writing, so the directions start from facts:
 
 ```
-$ git log --oneline -3
+$ git log --oneline -4
+2ab8d7b feat: enhance tests and documentation for CampusFlow Next
 5abd263 Add structured notes, search functionality, and validation checks
 75ffda9 refactor and enhanced CampusFlow Next codebase
 0a4f00f mutable recall from initial repository campusflow-adogah (for audit and improvement)
@@ -16,23 +17,31 @@ $ git rev-list --left-right --count origin/master...master
 0       0
 ```
 
-`master` and `origin/master` are at the same commit and there is nothing unpushed.
+`master` and `origin/master` are both at `2ab8d7b`, and there is nothing
+unpushed.
+
+**Re-measured on 2026-10-16, after `2ab8d7b` was made.** An earlier draft of this
+document was written before that commit existed, and it described a much larger
+set of uncommitted files. The sections below have been corrected against the tree
+as it now stands — a plan built on a stale `git status` tells the owner to commit
+things that are already committed.
 
 ---
 
 ## 1. Read this first: the feature work is already on `master`
 
-The brief asks for feature branches and a PR with review before merge. The two
-feature commits did not go through that:
+The brief asks for feature branches and a PR with review before merge. None of
+the feature commits went through that:
 
 | Commit | Contents | Should have been |
 |---|---|---|
 | `75ffda9` | `errors`, `jsonio`, `categories`, `tickets`, `priority`, `workflow`, `validation`, `storage` — 960 insertions across 8 files | Engineer 1's branch |
 | `5abd263` | `notes`, `search`, `reports`, `understanding_check`, `main`, and 9 test modules — 2733 insertions across 17 files | Engineer 2's branch |
+| `2ab8d7b` | the documentation set, the `search.py` docstring fix, four test-file changes, and `data_folder/categories.json` — 1967 insertions across 14 files | a branch of its own, before merge (see §3) |
 
-Both are on `master`, and `master` is already pushed. That is a deviation from
-the brief's own process rule, and it should be named in the submission rather
-than quietly ignored.
+All three are on `master`, and `master` is already pushed. That is a deviation
+from the brief's own process rule, and it should be named in the submission
+rather than quietly ignored.
 
 **Do not try to fix it by rewriting history.** Moving those commits onto branches
 now would mean `git reset --hard` on a branch that has already been pushed, and
@@ -42,10 +51,9 @@ is fine; only its route is wrong.
 ### The two honest options
 
 **Option A — keep the history, use a branch from here on (recommended).**
-Leave `75ffda9` and `5abd263` where they are, and put the remaining work — the
-documentation, the `search.py` comment fix and the four test-file changes that
-are currently uncommitted — on a feature branch with a pull request. The
-submission then notes: *"the two feature commits landed on master before the
+Leave the three commits where they are, and put the remaining work — the five
+files in §2, which are uncommitted right now — on a feature branch with a pull
+request. The submission then notes: *"three commits landed on master before the
 branch workflow was set up; everything after them went through a branch and a
 reviewed PR."*
 
@@ -64,56 +72,127 @@ Either way, the review itself is real work and worth doing properly — see §5.
 ```
 $ git status --short
  M README.md
+ M campusflow/categories.py
+ M campusflow/jsonio.py
+ M campusflow/notes.py
+ M campusflow/priority.py
+ M campusflow/reports.py
  M campusflow/search.py
- M docs/ai-learning-log(Engieneer-1).md
- M docs/ai-learning-log(Engieneer-2).md
- M docs/design-decisions.md
+ M campusflow/storage.py
+ M campusflow/tickets.py
+ M campusflow/understanding_check.py
+ M campusflow/validation.py
+ M campusflow/workflow.py
+ M docs/ai-learning-log.md
+ M docs/baseline-check.md
+ M docs/git-and-pr-plan.md
+ M main.py
+ M tests/support.py
  M tests/test_cli.py
- M tests/test_search.py
- M tests/test_storage.py
- M tests/test_workflow.py
-?? data_folder/categories.json
-?? docs/ai-learning-log.md
-?? docs/baseline-check.md
-?? docs/bug-hunter-tests.md
+ M tests/test_understanding.py
 ```
 
-Four things worth knowing about these:
+Nineteen files, all modifications. No new files, nothing untracked. Everything
+else — `campusflow/errors.py`, `campusflow/priority.py`'s neighbours, the other
+test modules, the other documents — is already committed in one of the three
+commits above, `data_folder/categories.json` included.
 
-1. **`docs/ai-learning-log(Engieneer-1).md` and `(Engieneer-2).md` are tracked
-   but were empty.** They are in the tree from `0a4f00f` with zero bytes. They
-   have been filled in, not created. The file names — including the "Engieneer"
-   spelling — are the ones the repository already had, and were left alone.
+The nineteen fall into three groups, and §3 proposes one commit for each:
 
-2. **`data_folder/categories.json` is new and untracked.** It was written by
-   running the loader during verification, not authored by hand. Its content is
-   the five default categories:
+| Group | Files | Nature |
+|---|---:|---|
+| Verification corrections | 6 | docs and tests only |
+| Source editing pass | 2 | presentation only |
+| `from __future__ import annotations` removed | 13 | one line each, no behaviour change (2 of the 13 overlap the group above) |
 
-   ```json
-   {"active": ["network", "hardware", "software", "administrative", "other"],
-    "retired": []}
-   ```
+What each group holds:
 
-   `data_folder/` is **not** in `.gitignore`, and the other three data files
-   (`tickets.json`, `counter.json`, `staff.json`) are tracked. So this file can
-   be committed with them, and documenting it in the README (§5 of the README)
-   is only true if it is. **Decision for the owner:** commit it for consistency
-   with the other three, or add `data_folder/` to `.gitignore` and stop tracking
-   all four — but do not leave this one file as the odd one out, because the
-   README documents it as part of the format.
+1. **`README.md` — the test count and the coverage table.** The suite grew from
+   242 to 246 tests after this document was first drafted, so the fresh-clone
+   command now says `expect: 246 tests, OK`, the per-module table says
+   `test_cli` 32 rather than 28, and Engineer 2's subtotal is 86 rather than 82.
+   A requirement-to-test mapping table was added so a reviewer can check coverage
+   instead of counting tests. The 242 figures were true when written; they are
+   not true now, which is the whole reason this file is being corrected.
 
-3. **`campusflow/search.py` is a comment-only change.** The docstring for
-   `_matches_text` claimed `casefold()` handles "dotted/dotless I in Turkish
-   text". An experiment in [ai-learning-log(Engieneer-2).md](ai-learning-log(Engieneer-2).md)
-   showed the dotted capital İ maps identically under `lower()` and `casefold()`
-   on this build, so the claim was false. The docstring now names the eszett,
-   which is a real difference, and `test_folds_the_case_mappings_that_lower_leaves_alone`
-   pins it. No behaviour changed.
+2. **`docs/baseline-check.md` — one line.** `**Current:** Ran 242 tests` became
+   `Ran 246 tests`. Same reason.
 
-4. **`docs/design-decisions.md` gained 222 lines and lost none.** Verified: the
-   diff contains zero removed lines. The file's own instruction — "do not
-   delete, only add to this" — is respected, and the original decisions are
-   untouched above the new section.
+3. **`docs/ai-learning-log.md` — two broken links fixed.** The index links to
+   `ai-learning-log(Engieneer-1).md` and `(Engieneer-2).md`. The file names
+   contain parentheses, which terminate a markdown link target, so both links
+   were dead. The target is now wrapped in angle brackets inside the
+   parentheses — the form markdown provides for exactly this — which is what
+   allows parentheses in a target. Found by resolving every relative link in
+   the repository programmatically rather than by clicking them.
+
+4. **`tests/test_cli.py` — one test made stronger, not merely longer.**
+   `TestSearchByPriority.test_the_work_queue_is_not_affected` previously asserted
+   that the queue printed no `" | "` rows and that three tickets existed in
+   `main.state` — which does not actually check the queue. It now asserts the
+   queue's real output, line for line:
+   `["T2 critical open", "T3 medium open", "T1 low open"]`. Requirement D says
+   the original queue must be unchanged, and this is the test that would fail if
+   it changed.
+
+5. **`docs/git-and-pr-plan.md` — this document**, re-measured after `2ab8d7b`.
+
+6. **`tests/test_understanding.py` — one assertion's wording.** An editing pass
+   over `understanding_check.py` (item 7) lowercased the re-prompt message from
+   `Invalid choice...` to `invalid choice...`. The test still asserted the old
+   casing, so the suite went red on exactly that one assertion — 245 of 246, and
+   reproducible in isolation, which is what made it a one-line fix rather than a
+   hunt. The assertion now matches the code. It still proves what it always
+   proved: an invalid choice is rejected and the same question is asked again,
+   twice in the scripted run.
+
+7. **`campusflow/understanding_check.py` and `campusflow/categories.py` — an
+   editing pass over the source.** Module and function docstrings were removed
+   and several user-facing prompt strings were lowercased. Checked against
+   `HEAD` with `ast`: **no function or class was removed or added** in either
+   file, so the change is presentation only, and no document quotes any of the
+   strings that moved. Worth stating plainly because a reviewer diffing these
+   two files will see a large deletion count and should know it is docstrings,
+   not logic.
+
+8. **`from __future__ import annotations` removed from all 13 files that had
+   it.** One line each, plus the blank line it left doubled in eleven of them.
+   The import was inert: the interpreter here is CPython 3.14, where PEP 649
+   defers annotation evaluation anyway, and the two things it exists to enable —
+   builtin generics (`list[str]`, 3.9+) and PEP 604 unions (`Path | None`,
+   3.10+) — are native. Checked before removing, not after:
+
+   - no `typing.get_type_hints`, no `__annotations__` access, no `TYPE_CHECKING`
+     block, no `pydantic`/`attrs` in the tree, so nothing evaluates annotations
+     at runtime;
+   - an `ast` pass over all 13 files found **no annotation naming a symbol that
+     is not bound at module scope**, so there is no forward reference or
+     import-cycle workaround relying on the deferred evaluation the import
+     provides — which is the one case where removing it would break a file.
+
+   Then verified by running: 246 tests, OK, and all 13 modules import cleanly.
+   The PEP 604 annotations now resolve to real union objects
+   (`Ticket.__annotations__["assigned_to"]` is `str | None`, not `'str | None'`).
+
+   **One caveat worth knowing.** The floor for running this project is now
+   Python **3.10**, set by the three files that use `|` in an annotation
+   (`jsonio.py:80`, `storage.py:72`, `tickets.py:277`). On 3.9 those three would
+   raise `TypeError` at import; the other ten are fine back to 3.9. The README
+   says only "Python 3", so nothing contradicts this — but if the marker ever
+   needs to run on 3.9, restore the import in those three files and nowhere
+   else.
+
+Two things an earlier draft of this section asked the owner to decide, both now
+settled by `2ab8d7b` and left here so the record is not silently rewritten:
+
+- **`data_folder/categories.json` was committed**, alongside the other three
+  tracked data files. That is the consistent choice, and it is what makes the
+  README's §5 claim that `categories.json` is part of the format true. No
+  `.gitignore` change was needed or made.
+- **`campusflow/search.py`'s docstring fix and the 222 new lines in
+  `docs/design-decisions.md`** are committed. The design-decisions diff still
+  contains zero removed lines, so the file's own "do not delete, only add to
+  this" instruction was respected.
 
 ---
 
@@ -124,101 +203,145 @@ Run the verification in §4 first. If it fails, the commit is not ready.
 ### Branch
 
 ```bash
-git switch -c feat/docs-and-verification
+git switch -c feat/final-verification-pass
 ```
 
 Branch names are suggestions; the only hard rule is that the work does not land
 on `master` again.
 
-### Commit 1 — the documentation set
+### Commit 1 — the verification corrections
+
+The numbers the suite outgrew, two dead links, and two tests brought back in line
+with the code.
 
 ```bash
-git add docs/baseline-check.md docs/bug-hunter-tests.md
-git add docs/ai-learning-log.md "docs/ai-learning-log(Engieneer-1).md" "docs/ai-learning-log(Engieneer-2).md"
-git add docs/design-decisions.md README.md
+git add README.md docs/baseline-check.md docs/ai-learning-log.md docs/git-and-pr-plan.md tests/test_cli.py tests/test_understanding.py
 git commit
 ```
 
 Suggested message:
 
 ```
-docs: baseline check, bug-hunter write-ups, learning logs, README
+docs: correct the test count, fix two links, align two tests
 
-Adds the evidence the brief asks for, all measured in this environment
-rather than recalled:
+The suite reached 246 tests after the documentation was first written, and
+two claims in it had gone stale:
 
-- baseline-check.md: the 41-test baseline at 0a4f00f, five inputs the
-  original code got wrong, and the 15 audit findings mapped to the tests
-  that now cover them. Includes running the original 41 tests unmodified
-  against the rewritten package — all pass.
-- bug-hunter-tests.md: BH-1 (json.load keeps the last of two identical
-  keys, so a duplicated ticket ID lost a ticket with no error) and BH-2
-  (the resolution percentage on an empty dataset).
-- ai-learning-log.md plus one log per engineer, three cycles each, each
-  with a measurement and with an AI suggestion that was changed or
-  rejected after being run.
-- design-decisions.md: 15 new decisions appended. The diff removes no
-  lines, so the original decisions are intact.
-- README.md: documented data formats, the notes and search behaviour, the
-  priority-consistency load invariant, the T1 vs N001 ID conventions, and
-  fresh-clone instructions.
+- README.md and baseline-check.md said 242 tests and gave test_cli 28 of
+  them. Both now say 246 and 32. The README also gained a
+  requirement-to-test mapping table, so a reviewer can check coverage
+  rather than count tests.
+- ai-learning-log.md linked to files whose names contain parentheses, which
+  terminate a markdown link target. Both links were dead; the targets are
+  now angle-bracketed.
+
+Two tests had drifted from the code they check:
+
+- test_cli.py: test_the_work_queue_is_not_affected asserted that the queue
+  printed no search rows and that three tickets existed, neither of which is
+  the queue's behaviour. It now asserts the queue's real output line for
+  line. Requirement D says the original queue must not change, and this is
+  the test that would fail if it did.
+- test_understanding.py: asserted the capitalised re-prompt message, which
+  the source no longer emits. Now matches. The test still proves an invalid
+  choice is rejected and re-asked.
+
+git-and-pr-plan.md is re-measured against the tree as it actually stands;
+an earlier draft listed files as uncommitted that are not.
+
+No application behaviour changed. Suite: 246 tests, OK.
 
 Co-Authored-By: Claude Code <noreply@anthropic.com>
 ```
 
-### Commit 2 — the two test-run fix-ups
+### Commit 2 — the source editing pass
+
+Separate commit, because it is a different kind of change: presentation only,
+over the source rather than the docs, and it should be reviewable as such.
 
 ```bash
-git add tests/test_cli.py tests/test_workflow.py tests/test_search.py tests/test_storage.py campusflow/search.py
+git add campusflow/categories.py campusflow/understanding_check.py
 git commit
 ```
 
 Suggested message:
 
 ```
-test: CLI and lifecycle coverage, plus a clean test run
+style: trim module and function docstrings; lowercase prompt strings
 
-- test_cli.py: menu shape, the input loops (re-prompting, blank filters,
-  unknown ticket IDs), and the rejected-action cases that must leave the
-  collection unchanged.
-- test_workflow.py: the full 3x3 can_transition matrix, so pinning the
-  predicate pins the rule.
-- test_search.py: casefold coverage — STRASSE finds a title stored as
-  Straße, which lower() would miss.
-- test_storage.py: capture the backup path print so the suite's own output
-  is not misleading.
-- search.py: correct a docstring that claimed casefold handles Turkish
-  dotted I. It does not; the eszett is the real example. Comment only.
+Docstrings removed from categories.py and understanding_check.py, and
+several user-facing prompts lowercased.
 
-Suite: 242 tests, OK.
+Presentation only: no function or class was removed or added in either
+file (checked with ast against HEAD), and nothing imports differently.
+Suite unchanged at 246 tests, OK.
 
 Co-Authored-By: Claude Code <noreply@anthropic.com>
 ```
 
-### The data file
+### Commit 3 — drop the inert `__future__` import
 
-If the owner decides to commit `data_folder/categories.json`, add it to commit 1
-with `git add data_folder/categories.json`. If not, add `data_folder/` to
-`.gitignore` in a **separate** commit that also removes the other three, and say
-so in the submission — a half-tracked data folder is worse than either option.
+Last, and separate again, so the one-line-each nature of it is obvious in the
+log. `campusflow/categories.py` and `campusflow/understanding_check.py` are
+already staged by commit 2; this stages the other eleven.
+
+```bash
+git add campusflow/jsonio.py campusflow/notes.py campusflow/priority.py campusflow/reports.py \
+        campusflow/search.py campusflow/storage.py campusflow/tickets.py \
+        campusflow/validation.py campusflow/workflow.py main.py tests/support.py
+git commit
+```
+
+Suggested message:
+
+```
+style: remove the inert `from __future__ import annotations`
+
+Removed from all 13 files that carried it. The import was doing nothing:
+this runs on CPython 3.14, where PEP 649 defers annotation evaluation
+regardless, and both things the import enables — builtin generics and
+`X | None` unions — are native well before that.
+
+Checked before removing, not after:
+
+- nothing in the tree calls typing.get_type_hints, reads __annotations__,
+  or uses TYPE_CHECKING, pydantic or attrs, so no annotation is evaluated
+  at runtime;
+- an ast pass found no annotation naming a symbol unbound at module scope,
+  so no forward reference depends on deferred evaluation.
+
+Verified by running: 246 tests OK, all 13 modules import cleanly, and the
+unions now resolve to real objects rather than strings.
+
+Sets the minimum interpreter at Python 3.10, from the three files using
+`|` in an annotation. Documented in docs/git-and-pr-plan.md.
+
+Co-Authored-By: Claude Code <noreply@anthropic.com>
+```
+
+`data_folder/categories.json` is already committed in `2ab8d7b`, so there is
+nothing to decide there and nothing to stage.
 
 ### Push and pull request
 
 ```bash
-git push -u origin feat/docs-and-verification
+git push -u origin feat/final-verification-pass
 ```
 
-Then open a PR against `master` with the two commits above. Suggested PR body:
+Then open a PR against `master` with the three commits above. Suggested PR body:
 
 ```
 ## What
 
-Documentation and verification for the CampusFlow Next sprint, plus two
-test-run fix-ups. No behaviour change to the application itself.
+The final verification pass for the CampusFlow Next sprint: stale test counts
+corrected, two dead documentation links fixed, two tests aligned with the code
+they check, an editing pass over two source modules, and the inert
+`from __future__ import annotations` removed from all 13 files that had it.
+No behaviour change to the application itself.
 
 ## Evidence
 
-- `python -m unittest discover -s tests -v` → 242 tests, OK
+- `python -m unittest discover -s tests -v` → 246 tests, OK
 - the original 41 tests, unmodified, against the rewritten package → OK
 - `data_folder/tickets.json` written by the first version still loads: three
   tickets, `assigned_to: false` read as unassigned, missing `notes` keys
@@ -226,15 +349,16 @@ test-run fix-ups. No behaviour change to the application itself.
 
 ## Deviations from the brief
 
-`75ffda9` and `5abd263` were committed directly to `master` before the branch
-workflow was in place, and `master` is already pushed. Rather than rewrite
-pushed history, this PR carries the remaining work and the deviation is
-recorded here.
+`75ffda9`, `5abd263` and `2ab8d7b` were committed directly to `master` before
+the branch workflow was in place, and `master` is already pushed. Rather than
+rewrite pushed history, this PR carries the remaining work and the deviation is
+recorded here as well as in `docs/git-and-pr-plan.md`.
 
 ## Not done by the author
 
-No branch, commit, push, issue or PR was created by the AI assistant; the
-commands are in `docs/git-and-pr-plan.md` and were run by hand.
+No branch, commit, push, issue or PR was created by the AI assistant working on
+this sprint; it was asked to write code and documentation only. The commands
+are directions in `docs/git-and-pr-plan.md`, run by the repository owner.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
@@ -244,14 +368,14 @@ commands are in `docs/git-and-pr-plan.md` and were run by hand.
 ## 4. Verify before every commit
 
 ```bash
-python -m unittest discover -s tests -v      # expect: 242 tests, OK
+python -m unittest discover -s tests -v      # expect: 246 tests, OK
 ```
 
 Expected output, with nothing after `OK` — a stray line from any function that
 prints during a test is a signal that output is leaking somewhere it should not:
 
 ```
-Ran 242 tests in 0.1XXs
+Ran 246 tests in 0.1XXs
 
 OK
 ```

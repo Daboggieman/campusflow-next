@@ -21,8 +21,6 @@ What changed in CampusFlow Next and why:
   get exactly the same scrutiny as notes typed at the prompt.
 """
 
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass, field
 

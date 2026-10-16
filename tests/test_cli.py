@@ -269,10 +269,17 @@ class TestSearchByPriority(CliTestCase):
         self.assertEqual(self.results_in_order(printed), ["T1"])
 
     def test_the_work_queue_is_not_affected(self):
-        """Requirement D: the original queue keeps its own behaviour."""
+        """Requirement D: the original queue keeps its own behaviour.
+
+        It lists ``id priority status`` and shows open plus in_progress, so its
+        order here is the same priority order — but reached through
+        ``get_work_queue``, not through this view. Nothing about it changed.
+        """
         _, printed = self.run_with_input([], main.work_queue)
-        self.assertEqual(self.results_in_order(printed), [])  # queue prints no " | " rows
-        self.assertEqual(sorted(main.state.tickets), ["T1", "T2", "T3"])
+        rows = [line for line in printed.splitlines() if line.startswith("T")]
+        self.assertEqual(rows, ["T2 critical open", "T3 medium open", "T1 low open"])
+        # the queue has its own format and does not use the search columns
+        self.assertEqual(self.results_in_order(printed), [])
 
 
 class TestCategoryMenu(CliTestCase):

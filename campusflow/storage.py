@@ -20,8 +20,6 @@ The important changes:
   collide with an ID already in the file.
 """
 
-from __future__ import annotations
-
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 

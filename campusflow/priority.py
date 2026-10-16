@@ -13,8 +13,6 @@ Note that ``urgency`` no longer includes the value "critical" — see
 :mod:`campusflow.tickets`. "critical" is a priority, not an urgency.
 """
 
-from __future__ import annotations
-
 CRITICAL_USER_THRESHOLD = 10
 AFFECTED_USER_THRESHOLD = 3
 

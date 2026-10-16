@@ -49,7 +49,7 @@ Not one of the 41 was deleted or weakened. Every one still runs against the new
 code; the four modules that grew (tickets, workflow, storage, reports) kept
 their original tests unchanged and gained new ones beside them.
 
-**Current:** `Ran 242 tests` — `OK`.
+**Current:** `Ran 246 tests` — `OK`.
 
 ### The original tests are all still there
 

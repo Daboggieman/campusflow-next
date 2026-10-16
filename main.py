@@ -21,8 +21,6 @@ returns to the menu, and because the underlying functions validate before they
 write, nothing is half-changed when that happens.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from campusflow import categories, notes, storage

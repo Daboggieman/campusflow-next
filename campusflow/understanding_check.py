@@ -1,30 +1,9 @@
-"""The Engineering Understanding Check.
-
-Three things are deliberately kept apart so each can be tested on its own:
-
-1. :data:`QUESTIONS` — the question bank. Plain data. Changing a question is an
-   edit here and nothing else.
-2. :func:`score_answers` — the scoring. A pure function of the answers and the
-   bank. It contains no ``input()``, no ``print()`` and no copy of the correct
-   answers, so it cannot disagree with the bank.
-3. :func:`run_check` — the conversation. It reads choices, rejects anything
-   that is not A/B/C/D, and collects the written explanations.
-
-Explanations are recorded **verbatim and never graded**. Marking free text
-correct because it contains a keyword would be a guess dressed up as a mark,
-and the brief rules it out explicitly; the written answers exist so a mentor
-can read the learner's reasoning.
-"""
-
-from __future__ import annotations
-
 from pathlib import Path
 
 CHOICES = ("A", "B", "C", "D")
 
 MIN_EXPLANATIONS = 2
 
-#: Six scenario questions about this application's own behaviour.
 QUESTIONS = [
     {
         "id": "Q1",
@@ -139,7 +118,6 @@ QUESTIONS = [
 
 
 def normalise_choice(raw_choice):
-    """Return a valid A/B/C/D choice, or ``None`` if the input is not one."""
     if not isinstance(raw_choice, str):
         return None
     choice = raw_choice.strip().upper()
@@ -147,12 +125,6 @@ def normalise_choice(raw_choice):
 
 
 def score_answers(answers, questions=None) -> int:
-    """One point per correct answer. Never less than 0 or more than the bank.
-
-    A short or over-long answer list is tolerated here so that a caller which
-    collected the wrong number of answers gets a score it can reason about,
-    rather than an exception. Missing answers simply score nothing.
-    """
     bank = QUESTIONS if questions is None else questions
     return sum(
         1
@@ -162,7 +134,6 @@ def score_answers(answers, questions=None) -> int:
 
 
 def grade_answers(answers, questions=None) -> list:
-    """Per-question detail, for feedback and for mentor discussion."""
     bank = QUESTIONS if questions is None else questions
     graded = []
     for index, question in enumerate(bank):
@@ -181,24 +152,22 @@ def grade_answers(answers, questions=None) -> list:
 
 
 def _ask_choice(question, input_fn, print_fn):
-    """Ask one question, re-prompting until the answer is A, B, C or D."""
     while True:
         print_fn("")
         print_fn(f"{question['id']}. {question['prompt']}")
         for letter in CHOICES:
             print_fn(f"  {letter}. {question['options'][letter]}")
 
-        choice = normalise_choice(input_fn("Your answer (A/B/C/D): "))
+        choice = normalise_choice(input_fn("your answer (A/B/C/D): "))
         if choice is not None:
             return choice
-        print_fn("Invalid choice. Please enter A, B, C or D.")
+        print_fn("invalid choice. Please enter A, B, C or D.")
 
 
 def _ask_for_ids(question_ids, input_fn, print_fn):
-    """Collect at least :data:`MIN_EXPLANATIONS` valid question IDs to explain."""
     while True:
         raw = input_fn(
-            f"Which answers will you explain? Enter at least "
+            f"which answers will you explain? Enter at least "
             f"{MIN_EXPLANATIONS} IDs separated by commas (e.g. Q1,Q4): "
         )
         chosen = []
@@ -216,7 +185,6 @@ def _ask_for_ids(question_ids, input_fn, print_fn):
 
 
 def format_session(result) -> str:
-    """A markdown record of one sitting, for the learning log."""
     lines = [
         "# Engineering Understanding Check",
         "",
@@ -241,16 +209,9 @@ def format_session(result) -> str:
 
 
 def run_check(input_fn=input, print_fn=print, save_path=None) -> dict:
-    """Run the whole check and return the session.
-
-    ``input_fn`` and ``print_fn`` are injectable so the whole flow can be
-    driven from a test without a person typing. When ``save_path`` is given the
-    session is appended to that file as a learning note.
-    """
     print_fn("=== Engineering Understanding Check ===")
     print_fn(
-        "Six questions on how this application behaves. "
-        "Answers are scored; written explanations are not."
+        "Six questions on how this application behaves."
     )
 
     answers = [_ask_choice(question, input_fn, print_fn) for question in QUESTIONS]
@@ -258,7 +219,7 @@ def run_check(input_fn=input, print_fn=print, save_path=None) -> dict:
     score = score_answers(answers)
 
     print_fn("")
-    print_fn("--- Feedback ---")
+    print_fn("<<< Feedback >>>")
     for item in graded:
         if item["correct"]:
             print_fn(f"{item['id']}: correct.")
@@ -274,8 +235,8 @@ def run_check(input_fn=input, print_fn=print, save_path=None) -> dict:
     question_ids = [question["id"] for question in QUESTIONS]
     print_fn("")
     print_fn(
-        f"Now explain at least {MIN_EXPLANATIONS} of your answers in your own "
-        "words. These are not marked; they are for your mentor."
+        f"now explain at least {MIN_EXPLANATIONS} of your answers in your own "
+        "words"
     )
 
     explanations = {}

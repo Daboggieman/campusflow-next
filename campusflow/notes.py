@@ -15,8 +15,6 @@ Notes are never removed by resolving or reopening, so a reopened ticket keeps
 its history.
 """
 
-from __future__ import annotations
-
 from campusflow.errors import ValidationError
 from campusflow.tickets import (
     NOTE_ALLOWED_STATUSES,

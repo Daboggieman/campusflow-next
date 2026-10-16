@@ -14,8 +14,6 @@ The two error types are used deliberately:
   Abandon the whole load rather than accept part of it.
 """
 
-from __future__ import annotations
-
 from campusflow.categories import get_categories
 from campusflow.errors import DataError, ValidationError
 from campusflow.priority import calculate_priority

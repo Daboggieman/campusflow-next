@@ -18,8 +18,6 @@ to :mod:`json`:
   ``object_pairs_hook`` to refuse the file instead.
 """
 
-from __future__ import annotations
-
 import json
 import os
 import shutil

@@ -120,7 +120,7 @@ class TestRunCheck(unittest.TestCase):
         )
         self.assertEqual(result["score"], 6)
         self.assertEqual(
-            "\n".join(lines).count("Invalid choice. Please enter A, B, C or D."), 2
+            "\n".join(lines).count("invalid choice. Please enter A, B, C or D."), 2
         )
         self.assertEqual(result["answers"], ALL_CORRECT)
 

@@ -4,8 +4,6 @@ Not itself a test module — ``unittest`` discovery only collects ``test*.py``,
 so this file is imported by the test modules that need it.
 """
 
-from __future__ import annotations
-
 import tempfile
 import unittest
 from pathlib import Path

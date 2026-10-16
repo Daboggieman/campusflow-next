@@ -11,8 +11,6 @@ it must match, so several filters together are AND, not OR.** A blank or
 nothing".
 """
 
-from __future__ import annotations
-
 from campusflow.tickets import ticket_number
 from campusflow.workflow import PRIORITY_RANKS
 

@@ -1,7 +1,5 @@
 """Ticket lifecycle: status moves, assignment, and the Open Work Queue."""
 
-from __future__ import annotations
-
 from campusflow.errors import ValidationError
 from campusflow.tickets import (
     check_assigned_to,

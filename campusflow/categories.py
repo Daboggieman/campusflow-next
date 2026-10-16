@@ -1,36 +1,7 @@
-"""The ticket category list, held as editable application data.
-
-CampusFlow Next treats the set of allowed categories as **data**, not as a
-constant baked into the source. The campus can add a category or retire one
-without a code change.
-
-Two sets are tracked, and keeping them apart is the whole point:
-
-``active``
-    Categories a **new or edited** ticket may use. This is what the create
-    prompt and the category menu offer.
-
-``retired``
-    Categories that are no longer offered but are still **known**. A ticket
-    already carrying a retired category keeps loading and displaying correctly.
-    Retiring can therefore never orphan the tickets that use it, which is what
-    lets the campus converge on the four canonical names without a forced
-    migration of existing records.
-
-This module deliberately does not import :mod:`campusflow.storage`. Storage
-imports this module (through ``tickets``), so importing storage back would be a
-cycle; file paths are passed in by the caller instead.
-"""
-
-from __future__ import annotations
-
 from pathlib import Path
-
 from campusflow.errors import DataError, ValidationError
 from campusflow.jsonio import load_json, save_json
 
-#: The categories CampusFlow shipped with. Used to seed a first run and to
-#: reset the registry in tests. Stored lowercase, as in the original project.
 DEFAULT_CATEGORIES = [
     "network",
     "hardware",
@@ -42,24 +13,21 @@ DEFAULT_CATEGORIES = [
 _active: list[str] = list(DEFAULT_CATEGORIES)
 _retired: list[str] = []
 
-
 def get_categories() -> list[str]:
-    """Categories a new ticket may use, in display order."""
+    """categories a new ticket may use, in display order."""
     return list(_active)
 
-
 def get_retired_categories() -> list[str]:
-    """Categories that are no longer offered but are still accepted on load."""
+    """categories that are no longer offered but are still accepted on load."""
     return list(_retired)
 
-
 def get_known_categories() -> list[str]:
-    """Active + retired: everything a *stored* ticket may legitimately carry."""
+    """active + retired: everything a saved ticket may carry."""
     return list(_active) + list(_retired)
 
 
 def reset_categories() -> None:
-    """Restore the shipped defaults. Used by tests and by a fresh start."""
+    """restore the shipped defaults."""
     global _active, _retired
     _active = list(DEFAULT_CATEGORIES)
     _retired = []

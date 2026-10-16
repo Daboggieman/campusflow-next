@@ -9,8 +9,6 @@ resolved and then reopened counts as open. Each ticket is counted once per
 breakdown, so the status counts always add back up to the total.
 """
 
-from __future__ import annotations
-
 from collections import Counter
 
 from campusflow.categories import get_known_categories
