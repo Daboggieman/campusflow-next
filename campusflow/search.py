@@ -20,9 +20,10 @@ from campusflow.workflow import PRIORITY_RANKS
 def _matches_text(haystack, needle) -> bool:
     """Case-insensitive substring test.
 
-    ``casefold`` rather than ``lower``: it handles the extra case mappings
-    (for example the German sharp s, and dotted/dotless I in Turkish text)
-    that ``lower`` leaves alone.
+    ``casefold`` rather than ``lower``: it handles the case mappings that are
+    not one-to-one, so ``"STRASSE"`` finds a title stored as ``"Straße"``
+    (``"ß".lower()`` is ``"ß"``, but ``"ß".casefold()`` is ``"ss"``). ``lower``
+    would miss it.
     """
     return needle.casefold() in haystack.casefold()
 

@@ -2,6 +2,7 @@ import unittest
 
 from campusflow.workflow import (
     assign_ticket,
+    can_transition,
     get_work_queue,
     move_ticket,
 )
@@ -121,6 +122,61 @@ class TestGetWorkQueue(unittest.TestCase):
             [ticket.id for ticket in result],
             ["T003", "T020", "T100"],
         )
+
+
+class TestCanTransition(unittest.TestCase):
+    """The whole lifecycle rule in one table.
+
+    Engineer A — Ticket Safety and Storage Engineer. ``move_ticket`` asks this
+    predicate, so pinning the predicate pins the rule; the tests above then
+    only have to show that ``move_ticket`` consults it.
+    """
+
+    ALLOWED = [
+        ("open", "in_progress"),
+        ("in_progress", "resolved"),
+        ("resolved", "open"),
+    ]
+
+    def test_the_three_legal_moves_are_allowed(self):
+        for current, wanted in self.ALLOWED:
+            self.assertTrue(can_transition(current, wanted), msg=f"{current}->{wanted}")
+
+    def test_every_other_combination_of_known_statuses_is_refused(self):
+        statuses = ["open", "in_progress", "resolved"]
+        allowed = set(self.ALLOWED)
+        for current in statuses:
+            for wanted in statuses:
+                if (current, wanted) in allowed:
+                    continue
+                self.assertFalse(
+                    can_transition(current, wanted), msg=f"{current}->{wanted}"
+                )
+
+    def test_a_ticket_cannot_move_to_its_own_status(self):
+        for status in ("open", "in_progress", "resolved"):
+            self.assertFalse(can_transition(status, status))
+
+    def test_an_unknown_current_status_allows_nothing(self):
+        for wanted in ("open", "in_progress", "resolved", "banana", ""):
+            self.assertFalse(can_transition("archived", wanted))
+
+    def test_the_predicate_does_not_touch_a_ticket(self):
+        ticket = make_ticket(status="open")
+        can_transition("open", "in_progress")
+        self.assertEqual(ticket.status, "open")
+
+
+class TestMoveConsultsThePredicate(unittest.TestCase):
+    def test_a_move_the_predicate_refuses_is_refused_by_move_ticket(self):
+        for current in ("open", "in_progress", "resolved"):
+            for wanted in ("open", "in_progress", "resolved"):
+                if can_transition(current, wanted):
+                    continue
+                ticket = make_ticket(status=current, assigned_to="Ada")
+                with self.assertRaises(ValueError, msg=f"{current}->{wanted}"):
+                    move_ticket(ticket, wanted)
+                self.assertEqual(ticket.status, current)
 
 
 if __name__ == "__main__":

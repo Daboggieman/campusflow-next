@@ -67,6 +67,17 @@ class TestTitleSearch(unittest.TestCase):
     def test_blank_title_does_not_filter(self):
         self.assertEqual(len(search_tickets(sample(), title="   ")), 4)
 
+    def test_folds_the_case_mappings_that_lower_leaves_alone(self):
+        """``casefold`` is not ``lower``: "STRASSE" must find "Straße".
+
+        ``"ß".lower()`` is ``"ß"``, so a ``lower``-based comparison misses
+        this; ``"ß".casefold()`` is ``"ss"``, which matches.
+        """
+        tickets = {"T1": make_ticket("T1", title="Straße gesperrt")}
+        self.assertEqual(
+            [ticket.id for ticket in search_tickets(tickets, title="STRASSE")], ["T1"]
+        )
+
 
 class TestCombinedFilters(unittest.TestCase):
     def test_every_supplied_filter_must_match(self):

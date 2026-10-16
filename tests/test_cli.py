@@ -226,6 +226,55 @@ class TestSearchOutput(CliTestCase):
         self.assertIn("No tickets matched.", printed)
 
 
+class TestSearchByPriority(CliTestCase):
+    """The separate optional view: the same search, re-ordered.
+
+    Requirement D keeps the Open Work Queue as it is and asks for the
+    priority-ordered view to be something *additional*. This is that view, so it
+    has to use the same filters and show the same tickets — only the order
+    differs from the plain search.
+    """
+
+    def setUp(self):
+        super().setUp()
+        main.state.tickets = {
+            "T1": make_ticket("T1", title="wi-fi down", urgency="low", affected_users=1),
+            "T2": make_ticket("T2", title="wi-fi slow", urgency="high", affected_users=20),
+            "T3": make_ticket("T3", title="wi-fi gone", urgency="medium", affected_users=3),
+        }
+
+    def results_in_order(self, printed):
+        return [
+            line.split(" | ")[0]
+            for line in printed.splitlines()
+            if " | " in line
+        ]
+
+    def test_puts_critical_first_then_the_rest_by_priority(self):
+        _, printed = self.run_with_input(["wi-fi", "", "", ""], main.search_by_priority)
+        self.assertEqual(self.results_in_order(printed), ["T2", "T3", "T1"])
+
+    def test_plain_search_shows_the_same_tickets_in_id_order(self):
+        """Only the order differs — the view is not a different filter."""
+        _, by_id = self.run_with_input(["wi-fi", "", "", ""], main.search)
+        _, by_priority = self.run_with_input(["wi-fi", "", "", ""], main.search_by_priority)
+        self.assertEqual(self.results_in_order(by_id), ["T1", "T2", "T3"])
+        self.assertEqual(
+            sorted(self.results_in_order(by_priority)),
+            sorted(self.results_in_order(by_id)),
+        )
+
+    def test_the_filters_still_apply(self):
+        _, printed = self.run_with_input(["wi-fi", "", "open", "low"], main.search_by_priority)
+        self.assertEqual(self.results_in_order(printed), ["T1"])
+
+    def test_the_work_queue_is_not_affected(self):
+        """Requirement D: the original queue keeps its own behaviour."""
+        _, printed = self.run_with_input([], main.work_queue)
+        self.assertEqual(self.results_in_order(printed), [])  # queue prints no " | " rows
+        self.assertEqual(sorted(main.state.tickets), ["T1", "T2", "T3"])
+
+
 class TestCategoryMenu(CliTestCase):
     def test_adding_a_category_persists_it(self):
         from campusflow import categories
@@ -240,8 +289,15 @@ class TestCategoryMenu(CliTestCase):
         self.assertIn("Invalid menu option.", printed)
 
     def test_retiring_the_last_category_is_refused(self):
-        _, printed = self.run_with_input(["2", "network", "3"], main.manage_categories)
+        from campusflow import categories
+
+        for name in ("network", "hardware", "software", "other"):
+            categories.retire_category(name)
+        self.assertEqual(categories.get_categories(), ["administrative"])
+
+        _, printed = self.run_with_input(["2", "administrative", "3"], main.manage_categories)
         self.assertIn("Not done:", printed)
+        self.assertEqual(categories.get_categories(), ["administrative"])
 
 
 if __name__ == "__main__":
