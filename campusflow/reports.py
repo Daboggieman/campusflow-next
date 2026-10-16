@@ -1,36 +1,92 @@
+"""Quality insights for the Head of Campus.
+
+Split in two, as in the original: :func:`generate_report` works the numbers out
+and returns them, :func:`print_report` displays them. The numbers function
+never prints, so it can be tested by inspecting a dictionary.
+
+Counts are taken from each ticket's **current** status, so a ticket that was
+resolved and then reopened counts as open. Each ticket is counted once per
+breakdown, so the status counts always add back up to the total.
+"""
+
+from __future__ import annotations
+
 from collections import Counter
 
-def generate_report(tickets):
+from campusflow.categories import get_known_categories
+from campusflow.tickets import PRIORITIES, STATUSES
 
-    status_counts = Counter(
-        ticket.status for ticket in tickets.values()
-    )
+#: Shown even when zero, so the report has a stable shape to read.
+REPORTED_STATUSES = STATUSES
+REPORTED_PRIORITIES = PRIORITIES
 
-    priority_counts = Counter(
-        ticket.priority for ticket in tickets.values()
-    )
+
+def generate_report(tickets) -> dict:
+    """Every headline figure, computed from current statuses.
+
+    ``resolution_percentage`` is 0.0 for an empty collection rather than a
+    :class:`ZeroDivisionError`, and is rounded to one decimal place so the
+    printed and tested values agree.
+    """
+    by_status = Counter(ticket.status for ticket in tickets.values())
+    by_priority = Counter(ticket.priority for ticket in tickets.values())
+    by_category = Counter(ticket.category for ticket in tickets.values())
+
+    total = len(tickets)
+    resolved = by_status.get("resolved", 0)
+    # Counted directly rather than as (total - resolved) so that "unresolved"
+    # is obviously the sum of the two active statuses and cannot double-count.
+    unresolved = by_status.get("open", 0) + by_status.get("in_progress", 0)
+
+    resolution_percentage = (resolved / total * 100) if total else 0.0
 
     return {
-        "total": len(tickets),
-        "by_status": dict(status_counts),
-        "by_priority": dict(priority_counts),
+        "total": total,
+        "by_status": dict(by_status),
+        "by_priority": dict(by_priority),
+        "by_category": dict(by_category),
+        "unresolved": unresolved,
+        "resolved": resolved,
+        "resolution_percentage": round(resolution_percentage, 1),
     }
 
 
-def print_report(report):
+def _print_counts(title, order, counts, extra_keys=()):
+    print(f"\n{title}")
+    for key in order:
+        print(f"  {key}: {counts.get(key, 0)}")
+    for key in sorted(extra_keys):
+        print(f"  {key}: {counts.get(key, 0)}")
+
+
+def print_report(report) -> None:
+    """Display a report produced by :func:`generate_report`."""
     if report["total"] == 0:
         print("No tickets yet.")
+        print("Resolution: 0.0% (0 of 0 resolved)")
         return
 
     print("\nCampusFlow Ticket")
     print(f"Total tickets: {report['total']}")
 
-    print("\nTickets by status:")
-    for status in ("open", "in_progress", "resolved"):
-        count = report["by_status"].get(status, 0)
-        print(f"  {status}: {count}")
+    _print_counts("Tickets by status:", REPORTED_STATUSES, report["by_status"])
+    _print_counts("Tickets by priority:", REPORTED_PRIORITIES, report["by_priority"])
 
-    print("\nTickets by priority:")
-    for priority in ("critical", "high", "medium", "low"):
-        count = report["by_priority"].get(priority, 0)
-        print(f"  {priority}: {count}")
+    # Categories are editable data, so any stored category is shown even if it
+    # is no longer offered, and anything unrecognised is still listed rather
+    # than silently dropped from the totals.
+    known = set(get_known_categories())
+    _print_counts(
+        "Tickets by category:",
+        [name for name in get_known_categories() if name in report["by_category"]],
+        report["by_category"],
+        extra_keys=[name for name in report["by_category"] if name not in known],
+    )
+
+    print("\nResolution:")
+    print(f"  unresolved (open + in_progress): {report['unresolved']}")
+    print(f"  resolved: {report['resolved']}")
+    print(
+        f"  resolution: {report['resolution_percentage']}% "
+        f"({report['resolved']} of {report['total']} resolved)"
+    )

@@ -36,20 +36,6 @@ COUNTER_FILE = DATA_DIR / "counter.json"
 STAFF_FILE = DATA_DIR / "staff.json"
 CATEGORIES_FILE = DATA_DIR / "categories.json"
 
-#: The keys every stored ticket must carry. ``notes`` is required on the way
-#: *out*; a file written before CampusFlow Next is still accepted without it,
-#: because the dataclass supplies an empty list.
-REQUIRED_TICKET_KEYS = (
-    "id",
-    "title",
-    "category",
-    "urgency",
-    "affected_users",
-    "priority",
-    "status",
-    "assigned_to",
-)
-
 DEFAULT_STAFF = [
     "Mr. Kingsley(HOC)",
     "Mr. Godswill",
@@ -162,10 +148,22 @@ def validate_counter(counter, tickets):
     return counter, []
 
 
+def next_ticket_id(counter):
+    """The next ID and counter value, **without writing anything**.
+
+    Callers that need to build the ticket before committing (so a failure
+    cannot consume an ID) use this and save the counter themselves.
+    """
+    if not isinstance(counter, int) or isinstance(counter, bool) or counter < 0:
+        raise ValidationError("The counter must be a non-negative integer.")
+
+    new_counter = counter + 1
+    return f"T{new_counter}", new_counter
+
+
 def generate_ticket_id(counter):
     """Issue the next ticket ID and persist the advanced counter."""
-    new_counter = counter + 1
-    ticket_id = f"T{new_counter}"
+    ticket_id, new_counter = next_ticket_id(counter)
     save_counter(new_counter)
     return ticket_id, new_counter
 

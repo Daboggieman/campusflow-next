@@ -1,25 +1,22 @@
-"""Error types shared by the CampusFlow modules.
+"""
+type of errors in the campusflow application.
 
-Two failure families, deliberately kept apart:
+there are two error families and they are deliberately kept apart to help with debugging and future
+implementation
 
-``ValidationError``
-    A **user action** broke a business rule: a blank title, a bad urgency, a
-    note on a resolved ticket. The caller is expected to show the message and
-    re-prompt. It subclasses ``ValueError`` so that every check written before
-    this module existed (which raised plain ``ValueError``) is still caught by
-    older ``except``/``assertRaises`` clauses.
+ValidationError
+    these are errors caused by user action breaking the application rule eg 
+    a blank title, an unacceptable urgency, inserting a string where an integer is expected or vice versa. 
+    
+DataErro
+    broken stored data or stored datathat cannot be trusted e.g an unreadable JSON file, a duplicate ticket id,
+    a record that fails validation.
 
-``DataError``
-    **Stored data** cannot be trusted: unreadable JSON, a duplicate ticket ID,
-    a record that fails validation. The caller must not fall back to a partial
-    load. It is deliberately *not* a ``ValueError`` so the two cases cannot be
-    confused by a broad ``except ValueError``.
 """
 
 
 class ValidationError(ValueError):
-    """A user-supplied value failed a business rule. Safe to show and re-ask."""
-
+    """A user action broke a rule. The caller may recover and continue."""
 
 class DataError(Exception):
-    """Stored data is unusable. Callers must keep their current state intact."""
+    """stored data is unusable. callers must keep their current state intact."""
