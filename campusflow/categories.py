@@ -34,11 +34,6 @@ def reset_categories() -> None:
 
 
 def check_category_name(raw_name) -> str:
-    """Normalise one category name to its stored spelling.
-
-    Names are stored casefolded and trimmed, matching the lowercase spellings
-    the original project used for ``network``/``hardware``/``software``.
-    """
     if not isinstance(raw_name, str):
         raise ValidationError("A category name must be text.")
     name = raw_name.strip().casefold()
@@ -48,7 +43,6 @@ def check_category_name(raw_name) -> str:
 
 
 def set_categories(active, retired=None) -> None:
-    """Replace the registry. Used when loading from disk and by tests."""
     global _active, _retired
 
     cleaned_active: list[str] = []
@@ -66,7 +60,6 @@ def set_categories(active, retired=None) -> None:
     cleaned_retired: list[str] = []
     for raw_name in retired or []:
         name = check_category_name(raw_name)
-        # A name cannot be both active and retired; active wins.
         if name in seen or name in cleaned_retired:
             continue
         cleaned_retired.append(name)
@@ -82,7 +75,6 @@ def add_category(raw_name) -> str:
         raise ValidationError(f"'{name}' is already an active category.")
 
     if name in _retired:
-        # Reviving keeps the original spelling, so old tickets still match.
         _retired.remove(name)
         _active.append(name)
         return name
