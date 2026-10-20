@@ -69,7 +69,6 @@ def set_categories(active, retired=None) -> None:
 
 
 def add_category(raw_name) -> str:
-    """Return an existing category to the active list, or create a new one."""
     name = check_category_name(raw_name)
     if name in _active:
         raise ValidationError(f"'{name}' is already an active category.")
@@ -84,7 +83,6 @@ def add_category(raw_name) -> str:
 
 
 def retire_category(raw_name) -> str:
-    """Stop offering a category without losing tickets that already use it."""
     name = check_category_name(raw_name)
     if name not in _active:
         raise ValidationError(f"'{name}' is not an active category.")
@@ -102,11 +100,6 @@ def categories_to_dict() -> dict:
 
 
 def load_categories(path) -> None:
-    """load the category registry, seeding the file on a first run.
-
-    A plain JSON list is also accepted as the active set, so a hand-written
-    file does not have to know about the envelope.
-    """
     path = Path(path)
 
     if not path.exists():
@@ -132,5 +125,4 @@ def load_categories(path) -> None:
 
 
 def save_categories(path) -> None:
-    """Write the registry."""
     save_json(Path(path), categories_to_dict())

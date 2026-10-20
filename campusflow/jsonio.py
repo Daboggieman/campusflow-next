@@ -1,10 +1,3 @@
-"""JSON reading and writing.
-This file exists so that storage.py and categories.py can share one safe reader and writer without importing each
-other. it imports nothing from the rest of the package except the error types
-
-Saves are atomic
-Duplicate keys can be detected
-"""
 import json
 import os
 import shutil
@@ -58,7 +51,7 @@ def save_json(path, data) -> None:
 
 
 def backup_file(path) -> Path | None:
-    """Copy a file aside before it is replaced. Returns the backup path."""
+    """copy a file aside before it is replaced. returns the backup path."""
     path = Path(path)
     if not path.exists():
         return None
